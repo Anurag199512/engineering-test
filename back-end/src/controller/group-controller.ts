@@ -1,29 +1,60 @@
 import { NextFunction, Request, Response } from "express"
+import { getRepository } from "typeorm"
+import { Group } from "../entity/group.entity"
+import { CreateGroupInput, UpdateGroupInput } from "../interface/group.interface"
 
 export class GroupController {
+  private groupRepository = getRepository(Group)
 
   async allGroups(request: Request, response: Response, next: NextFunction) {
-    // Task 1: 
-    
     // Return the list of all groups
+    return this.groupRepository.find()
   }
 
   async createGroup(request: Request, response: Response, next: NextFunction) {
-    // Task 1: 
-    
     // Add a Group
+    const { body: params } = request
+
+    // TODO We can add input validation and api response error handling here.
+
+    const createGroupInput: CreateGroupInput = {
+      name: params.name,
+      number_of_weeks: params.number_of_weeks,
+      incidents: params.incidents,
+      ltmt: params.ltmt,
+      roll_states: params.roll_states
+    }
+
+    const group = new Group()
+    group.prepareToCreate(createGroupInput)
+
+    return this.groupRepository.save(group)
   }
 
   async updateGroup(request: Request, response: Response, next: NextFunction) {
-    // Task 1: 
-    
     // Update a Group
+    const { body: params } = request
+
+    return this.groupRepository.findOne(params.id).then((group) => {
+      const updateStudentInput: UpdateGroupInput = {
+        id: params.id,
+        name: params.name,
+        incidents: params.incidents,
+        number_of_weeks: params.number_of_weeks,
+        ltmt: params.ltmt,
+        roll_states: params.roll_states,
+      }
+
+      group.prepareToUpdate(updateStudentInput)
+
+      return this.groupRepository.save(group)
+    })
   }
 
   async removeGroup(request: Request, response: Response, next: NextFunction) {
-    // Task 1: 
-    
     // Delete a Group
+    let groupToRemove = await this.groupRepository.findOne(request.params.id)
+    return await this.groupRepository.remove(groupToRemove)
   }
 
   async getGroupStudents(request: Request, response: Response, next: NextFunction) {
