@@ -7,7 +7,7 @@ export class StudentController {
   private studentRepository = getRepository(Student)
 
   async allStudents(request: Request, response: Response, next: NextFunction) {
-    return this.studentRepository.find()
+     return this.studentRepository.find()
   }
 
   async createStudent(request: Request, response: Response, next: NextFunction) {
