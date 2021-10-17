@@ -1,11 +1,13 @@
 import "reflect-metadata"
-import { createConnection } from "typeorm"
+import { createConnection, LessThanOrEqual } from "typeorm"
 import * as express from "express"
 import * as bodyParser from "body-parser"
 import * as cors from "cors"
 import { Request, Response } from "express"
 import { Routes } from "./routes"
 import { Student } from "./entity/student.entity"
+import { Roll } from "./entity/roll.entity"
+import { StudentRollState } from "./entity/student-roll-state.entity"
 
 createConnection()
   .then(async (connection) => {
@@ -142,7 +144,44 @@ createConnection()
       }
     })
 
-    console.log(new Date());
+    // insert mock data for student roll
+    const insertStudentRoll = false
+    if (insertStudentRoll) {
+      const rollDate = new Date("2021-10-14")
+      await connection.manager.find(Student).then(async (students) => {
+        students.forEach(async (student) => {
+          // create a roll for each student
+          await connection.manager.save(
+            connection.manager.create(Roll, {
+              name: student.first_name,
+              completed_at: rollDate,
+            })
+          )
+        })
+      })
+
+      console.log("Inserted roll data for student on date:", rollDate)
+    }
+
+    // create student roll state
+    const enableLinkage = false
+    if (enableLinkage) {
+      connection.manager.find(Roll, { where: { id: LessThanOrEqual(9) } }).then(async (rolls) => {
+        rolls.forEach((roll) => {
+          connection.manager.findOne(Student, { where: { first_name: roll.name } }).then(async (student) => {
+            // create a student roll state
+            await connection.manager.save(
+              connection.manager.create(StudentRollState, {
+                roll_id: roll.id,
+                student_id: student.id,
+                state: "absent",
+              })
+            )
+          })
+        })
+      })
+    }
+
     console.log("Express server has started on port 4001. Open http://localhost:4001/student/get-all to see results")
   })
   .catch((error) => console.log(error))
