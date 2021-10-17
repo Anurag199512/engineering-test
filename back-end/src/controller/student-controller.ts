@@ -41,7 +41,7 @@ export class StudentController {
   }
 
   async removeStudent(request: Request, response: Response, next: NextFunction) {
-    let studentToRemove = await this.studentRepository.findOne(request.params.id)
+    const studentToRemove = await this.studentRepository.findOne(request.params.id)
     await this.studentRepository.remove(studentToRemove)
   }
 }
